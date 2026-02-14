@@ -1,90 +1,182 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>PRE-Client — Parallel Redirect Engine (Client)</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Short Link</title>
+
 <style>
-  :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
-  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a,#0b1220);color:#fff}
-  .card{width:94%;max-width:520px;padding:24px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02));box-shadow:0 8px 30px rgba(2,6,23,0.6);text-align:center}
-  h1{margin:0 0 6px;font-size:18px}
-  p{margin:6px 0 16px;color:#cbd5e1;font-size:14px}
-  .btn{display:inline-block;padding:12px 18px;border-radius:10px;background:#ff7a59;color:#111;font-weight:700;text-decoration:none;box-shadow:0 6px 18px rgba(255,122,89,0.18)}
-  .small{font-size:13px;color:#94a3b8;margin-top:10px}
-  a.inline{color:#7ee3bd}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:linear-gradient(135deg,#4f46e5,#3b2dbd);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding-top:80px;
+}
+
+/* Card */
+.card{
+  width:90%;
+  max-width:900px;
+  background:#fff;
+  border-radius:8px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.15);
+  padding:28px 30px;
+}
+
+.row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.input-box{
+  flex:1;
+  display:flex;
+  align-items:center;
+  background:#f3f4f6;
+  border-radius:30px;
+  padding:14px 20px;
+}
+
+.input-box input{
+  flex:1;
+  border:none;
+  background:transparent;
+  font-size:16px;
+  outline:none;
+}
+
+.btn{
+  background:#1677ff;
+  color:#fff;
+  border:none;
+  padding:14px 28px;
+  border-radius:30px;
+  font-weight:600;
+  cursor:pointer;
+  font-size:15px;
+  box-shadow:0 4px 14px rgba(22,119,255,0.4);
+}
+
+.option{
+  margin-top:16px;
+  display:inline-block;
+  background:#e5e7eb;
+  padding:6px 14px;
+  border-radius:20px;
+  font-size:13px;
+}
+
+.result{
+  margin-top:20px;
+  font-weight:600;
+  word-break:break-all;
+}
 </style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>PRE-Client — Parallel Redirect Engine</h1>
-    <p>Trang này tự động mở ứng dụng Shopee trên Android (intent) hoặc chuyển về link iOS. Nếu không tự mở, bấm nút bên dưới.</p>
-    <a id="manual" class="btn" href="#" onclick="manualOpen();return false;">Mở thủ công</a>
-    <div class="small">Nếu bạn dùng GitHub Pages, đặt file này làm index.html và gắn link GitHub lên Beacons.</div>
-  </div>
+
+<div id="app"></div>
 
 <script>
-const shopeeCode = "805SQETqCU";
-const iosUrl = `https://s.shopee.vn/${shopeeCode}`;
-const androidIntent = `intent://s.shopee.vn/${shopeeCode}#Intent;scheme=https;package=com.shopee.vn;end`;
-const chromeNavigate = `googlechrome://navigate?url=${encodeURIComponent(iosUrl)}`;
-const chromeIntent = `intent://s.shopee.vn/${shopeeCode}#Intent;package=com.android.chrome;scheme=https;S.browser_fallback_url=${encodeURIComponent(iosUrl)};end`;
+// ===============================
+// CHECK MODE (Redirect or Tool)
+// ===============================
 
-const FIRST_DELAY = 10;
-const RETRY_SHORT = 120;
-const RETRY_LONG = 700;
-const FINAL_FALLBACK = 1400;
+const params = new URLSearchParams(window.location.search);
+const shopeeCode = params.get("code");
 
-const ua = navigator.userAgent || "";
-const isIOS = /iphone|ipad|ipod/i.test(ua);
-const isAndroid = /android/i.test(ua);
+// ===============================
+// 🔥 REDIRECT MODE (PRE-CLIENT)
+// ===============================
+if(shopeeCode){
 
-function safeOpen(url) {
-  try { window.location.href = url; } catch(e){}
-}
+  document.body.style.background="#000";
+  document.getElementById("app").innerHTML="";
 
-function manualOpen(){
-  if (isIOS) safeOpen(iosUrl);
-  else safeOpen(androidIntent);
-}
+  const iosUrl = `https://s.shopee.vn/${shopeeCode}`;
+  const androidIntent =
+  `intent://s.shopee.vn/${shopeeCode}#Intent;scheme=https;package=com.shopee.vn;S.browser_fallback_url=${encodeURIComponent(iosUrl)};end`;
 
-function runPreClient() {
-  if (isIOS) {
-    setTimeout(()=>{ window.location.replace(iosUrl); }, FIRST_DELAY+10);
+  const ua = navigator.userAgent.toLowerCase();
+  const isIOS = /iphone|ipad|ipod/.test(ua);
+  const isAndroid = /android/.test(ua);
+
+  function openSafe(url){
+    try{ window.location.href = url }catch(e){}
+  }
+
+  function run(){
+    if(isIOS){
+      setTimeout(()=>window.location.replace(iosUrl),5);
+      return;
+    }
+
+    if(isAndroid){
+      setTimeout(()=>openSafe(androidIntent),5);
+      setTimeout(()=>window.location.replace(iosUrl),1400);
+      return;
+    }
+
+    setTimeout(()=>window.location.replace(iosUrl),1400);
+  }
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    setTimeout(run,10);
+  });
+
+}else{
+
+// ===============================
+// 🛠 TOOL MODE (UI SHORT LINK)
+// ===============================
+
+document.getElementById("app").innerHTML = `
+<div class="card">
+  <div class="row">
+    <div class="input-box">
+      <span style="margin-right:10px">🔗</span>
+      <input type="text" id="longLink" placeholder="Dán link aff Shopee vào đây">
+    </div>
+    <button class="btn" onclick="shorten()">RÚT GỌN</button>
+  </div>
+
+  <div class="option">Tùy chọn</div>
+
+  <div class="result" id="result"></div>
+</div>
+`;
+
+window.shorten = function(){
+
+  const input = document.getElementById("longLink").value.trim();
+  if(!input){
+    alert("Vui lòng nhập link");
     return;
   }
 
-  try {
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = androidIntent;
-    document.body.appendChild(iframe);
-  } catch(e){}
+  try{
+    const url = new URL(input);
+    const code = url.pathname.split("/").pop();
 
-  try {
-    const win = window.open(androidIntent, '_blank');
-    if (win) win.focus();
-  } catch(e){}
+    const shortLink = window.location.origin + "/?code=" + code;
 
-  setTimeout(()=>{ safeOpen(androidIntent); }, FIRST_DELAY);
-  setTimeout(()=>{ safeOpen(chromeNavigate); }, FIRST_DELAY + 30);
-  setTimeout(()=>{ safeOpen(chromeIntent); }, FIRST_DELAY + 80);
+    document.getElementById("result").innerHTML =
+      "Link rút gọn của bạn:<br><a href='"+shortLink+"' target='_blank'>"+shortLink+"</a>";
 
-  try {
-    const a = document.createElement('a');
-    a.href = androidIntent;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    setTimeout(()=>{ a.click(); }, FIRST_DELAY + 120);
-  } catch(e){}
-
-  setTimeout(()=>{ safeOpen(androidIntent); safeOpen(chromeNavigate); }, RETRY_SHORT);
-  setTimeout(()=>{ safeOpen(androidIntent); safeOpen(chromeIntent); }, RETRY_LONG);
-  setTimeout(()=>{ window.location.replace(iosUrl); }, FINAL_FALLBACK);
+  }catch(e){
+    alert("Link không hợp lệ");
+  }
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(runPreClient, 6); });
-document.getElementById('manual').addEventListener('click', manualOpen);
+}
 </script>
+
 </body>
 </html>
