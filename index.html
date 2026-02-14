@@ -10,22 +10,22 @@
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:linear-gradient(135deg,#4f46e5,#3b2dbd);
+  background:linear-gradient(135deg,#5f5af6,#3c2fc0);
   min-height:100vh;
   display:flex;
   justify-content:center;
   align-items:flex-start;
-  padding-top:80px;
+  padding-top:90px;
 }
 
 /* Card */
 .card{
-  width:90%;
+  width:92%;
   max-width:900px;
   background:#fff;
-  border-radius:8px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.15);
-  padding:28px 30px;
+  border-radius:12px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.2);
+  padding:30px;
 }
 
 .row{
@@ -39,8 +39,8 @@ body{
   display:flex;
   align-items:center;
   background:#f3f4f6;
-  border-radius:30px;
-  padding:14px 20px;
+  border-radius:40px;
+  padding:16px 22px;
 }
 
 .input-box input{
@@ -55,27 +55,36 @@ body{
   background:#1677ff;
   color:#fff;
   border:none;
-  padding:14px 28px;
-  border-radius:30px;
+  padding:16px 32px;
+  border-radius:40px;
   font-weight:600;
   cursor:pointer;
   font-size:15px;
-  box-shadow:0 4px 14px rgba(22,119,255,0.4);
+  box-shadow:0 6px 18px rgba(22,119,255,0.4);
+  transition:0.2s;
+}
+
+.btn:hover{
+  opacity:0.9;
 }
 
 .option{
-  margin-top:16px;
+  margin-top:18px;
   display:inline-block;
   background:#e5e7eb;
-  padding:6px 14px;
+  padding:7px 16px;
   border-radius:20px;
   font-size:13px;
 }
 
 .result{
-  margin-top:20px;
+  margin-top:25px;
   font-weight:600;
   word-break:break-all;
+}
+.result a{
+  color:#1677ff;
+  text-decoration:none;
 }
 </style>
 </head>
@@ -86,14 +95,14 @@ body{
 
 <script>
 // ===============================
-// CHECK MODE (Redirect or Tool)
+// CHECK MODE
 // ===============================
 
 const params = new URLSearchParams(window.location.search);
 const shopeeCode = params.get("code");
 
 // ===============================
-// 🔥 REDIRECT MODE (PRE-CLIENT)
+// 🔥 REDIRECT MODE
 // ===============================
 if(shopeeCode){
 
@@ -134,14 +143,14 @@ if(shopeeCode){
 }else{
 
 // ===============================
-// 🛠 TOOL MODE (UI SHORT LINK)
+// 🛠 TOOL MODE
 // ===============================
 
 document.getElementById("app").innerHTML = `
 <div class="card">
   <div class="row">
     <div class="input-box">
-      <span style="margin-right:10px">🔗</span>
+      <span style="margin-right:10px;font-size:18px;">🔗</span>
       <input type="text" id="longLink" placeholder="Dán link aff Shopee vào đây">
     </div>
     <button class="btn" onclick="shorten()">RÚT GỌN</button>
@@ -165,7 +174,9 @@ window.shorten = function(){
     const url = new URL(input);
     const code = url.pathname.split("/").pop();
 
-    const shortLink = window.location.origin + "/?code=" + code;
+    // 🔥 TỰ ĐỘNG LẤY ĐÚNG REPO (không cần sửa sau này)
+    const baseUrl = window.location.href.split("?")[0];
+    const shortLink = baseUrl + "?code=" + code;
 
     document.getElementById("result").innerHTML =
       "Link rút gọn của bạn:<br><a href='"+shortLink+"' target='_blank'>"+shortLink+"</a>";
